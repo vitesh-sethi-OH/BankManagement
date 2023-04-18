@@ -57,5 +57,48 @@ namespace BankManagement_ManagementAPI.Controllers
 
             return CreatedAtRoute("GetBank", new { accno = bankDTO.AccNo}, bankDTO);
             }
-        }     
-    }
+
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+       
+        [HttpDelete("{accno:int}", Name = "DeleteBank")]
+
+        public IActionResult DeleteBank(int accno)
+        {
+            if (accno == 0)
+            {
+                return BadRequest();
+            }
+
+            var bank = BankStore.bankList.FirstOrDefault(u => u.AccNo == accno);   
+            if(bank == null)
+            {
+                return NotFound();
+            }
+
+            BankStore.bankList.Remove(bank);
+            return NoContent();
+        }
+
+        [HttpPut("{accno:int}", Name = "UpdateBank")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdateBank(int accno, [FromBody]BankDTO bankDTO)
+        {
+            if(bankDTO==null || accno !=bankDTO.AccNo)
+            {
+                return BadRequest();
+            }
+
+            var bank = BankStore.bankList.FirstOrDefault(u => u.AccNo == accno);
+            bank.AccName = bankDTO.AccName;
+            bank.AadharCard = bankDTO.AadharCard;
+            bank.PanCard= bankDTO.PanCard;
+            bank.Address = bankDTO.Address;
+
+            return NoContent();
+        }
+
+    }     
+}
