@@ -1,6 +1,8 @@
 ﻿using BankManagement_ManagementAPI.Data;
+using BankManagement_ManagementAPI.Logging;
 using BankManagement_ManagementAPI.Models;
 using BankManagement_ManagementAPI.Models.DTO;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankManagement_ManagementAPI.Controllers
@@ -9,10 +11,19 @@ namespace BankManagement_ManagementAPI.Controllers
     [ApiController]
     public class ManagementAPIController : ControllerBase
     {
+
+        private readonly ILogging _logger;
+
+        public ManagementAPIController(ILogging logger)
+        {
+            _logger = logger;        
+        }
+
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<BankDTO>> GetBank()
         {
+            _logger.Log("Getting all bank details", "");
             return Ok(BankStore.bankList);
         }
         [HttpGet("accno", Name = "GetBank")]
@@ -27,6 +38,7 @@ namespace BankManagement_ManagementAPI.Controllers
         {
             if (accno == 0)
             {
+                _logger.Log("get bank details error" + accno, "error");
                 return BadRequest();
             }
             var bank = BankStore.bankList.FirstOrDefault(u => u.AccNo == accno);
@@ -96,6 +108,33 @@ namespace BankManagement_ManagementAPI.Controllers
             bank.AadharCard = bankDTO.AadharCard;
             bank.PanCard= bankDTO.PanCard;
             bank.Address = bankDTO.Address;
+
+            return NoContent();
+        }
+
+        [HttpPatch("{accno:int}", Name = "UpdatePartialBank")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+        public IActionResult UpdatePartialBank(int accno, JsonPatchDocument<BankDTO> patchDTO)
+        {
+            if (patchDTO == null || accno == 0)
+            {
+                return BadRequest();
+            }
+
+            var bank = BankStore.bankList.FirstOrDefault(u => u.AccNo == accno);
+
+            if(bank == null)
+            {
+                return BadRequest();
+            }
+
+            patchDTO.ApplyTo(bank, ModelState);
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             return NoContent();
         }
