@@ -2,9 +2,9 @@
 
 namespace BankManagement_ManagementAPI.Models.DTO
 {
-    public class BankDTO
+    public class BankCreateDTO
     {
-        public int AccNo { get; set; }
+       
         [Required]
         [MaxLength(255)]
         public string AccName { get; set; }

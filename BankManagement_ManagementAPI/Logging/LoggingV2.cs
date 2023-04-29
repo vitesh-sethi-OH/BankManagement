@@ -10,6 +10,19 @@
                 Console.Write("ERROR - " +message);
                 Console.BackgroundColor= ConsoleColor.Black;
             }
+            else
+            {
+                if (type == "warning")
+                {
+                    Console.BackgroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine("ERROR - " + message);
+                    Console.BackgroundColor= ConsoleColor.Black;
+                }
+                else
+                {
+                    Console.WriteLine(message);
+                }
+            }
         }
     }
 }

@@ -2,8 +2,9 @@
 
 namespace BankManagement_ManagementAPI.Models.DTO
 {
-    public class BankDTO
+    public class BankUpdateDTO
     {
+        [Required]
         public int AccNo { get; set; }
         [Required]
         [MaxLength(255)]
