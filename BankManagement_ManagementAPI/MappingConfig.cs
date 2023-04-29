@@ -14,6 +14,10 @@ namespace BankManagement_ManagementAPI
             CreateMap<Bank, BankCreateDTO>().ReverseMap();
             CreateMap<Bank, BankUpdateDTO>().ReverseMap();
 
+            CreateMap<BankLocker, BankLockerDTO>().ReverseMap();
+            CreateMap<BankLocker, BankLockerCreateDTO>().ReverseMap();
+            CreateMap<BankLocker, BankLockerUpdateDTO>().ReverseMap();
+
 
         }
     }

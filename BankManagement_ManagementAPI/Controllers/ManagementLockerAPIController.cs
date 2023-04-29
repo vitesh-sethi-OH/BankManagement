@@ -12,9 +12,9 @@ using System.Net;
 
 namespace BankManagement_ManagementAPI.Controllers
 {
-    [Route("api/ManagementAPI")]
+    [Route("api/ManagementNumberAPI")]
     [ApiController]
-    public class ManagementAPIController : ControllerBase
+    public class ManagementLockerAPIController : ControllerBase
     {
 
         private readonly ILogging _logger;
@@ -24,13 +24,14 @@ namespace BankManagement_ManagementAPI.Controllers
         //    _logger = logger;        
         //}
         protected APIResponse _response;
+        private readonly IBankLockerRepository _dbBankLocker;
         private readonly IBankRepository _dbBank;
         private readonly IMapper _mapper;
-        public ManagementAPIController(IBankRepository dbBank, ILogging logger, IMapper mapper)
+        public ManagementLockerAPIController(IBankLockerRepository dbBankLocker, ILogging logger, IMapper mapper, IBankRepository _bank)
         {
             _mapper = mapper;
             _logger = logger;
-            _dbBank = dbBank;
+            _dbBankLocker = dbBankLocker;
             this._response = new();
         }
 
@@ -41,9 +42,9 @@ namespace BankManagement_ManagementAPI.Controllers
             try
             {
 
-                IEnumerable<Bank> bankList = await _dbBank.GetAllAsync();
+                IEnumerable<BankLocker> bankLockerList = await _dbBankLocker.GetAllAsync();
                 _logger.Log("Getting all bank details", "");
-                _response.Result = _mapper.Map<List<BankDTO>>(bankList);
+                _response.Result = _mapper.Map<List<BankLockerDTO>>(bankLockerList);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
             }
@@ -57,7 +58,7 @@ namespace BankManagement_ManagementAPI.Controllers
             return _response;
         }
 
-        [HttpGet("accno", Name = "GetBank")]
+        [HttpGet("accno", Name = "GetBankLocker")]
         //[ProducesResponseType(200)]
         //[ProducesResponseType(404)]
         //[ProducesResponseType(400)]
@@ -65,7 +66,7 @@ namespace BankManagement_ManagementAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> GetBank(int accno)
+        public async Task<ActionResult<APIResponse>> GetBankLocker(int accno)
         {
             try
             {
@@ -76,13 +77,13 @@ namespace BankManagement_ManagementAPI.Controllers
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     return BadRequest(_response);
                 }
-                var bank = await _dbBank.GetAsync(u => u.AccNo == accno);
-                if (bank == null)
+                var bankLocker = await _dbBankLocker.GetAsync(u => u.AccountNumber == accno);
+                if (bankLocker == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
                     return NotFound(_response);
                 }
-                _response.Result = _mapper.Map<BankDTO>(bank);
+                _response.Result = _mapper.Map<BankLockerDTO>(bankLocker);
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
             }
@@ -101,12 +102,23 @@ namespace BankManagement_ManagementAPI.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<APIResponse>> CreateBank([FromBody] BankCreateDTO createDTO)
+        public async Task<ActionResult<APIResponse>> CreateBankLocker([FromBody] BankLockerCreateDTO createDTO)
         {
             try
             {
 
-            
+            if(await _dbBankLocker.GetAsync(u => u.AccountNumber ==createDTO.AccountNumber) != null)
+                {
+                    ModelState.AddModelError("CustomError", "Account Number Already Exists");
+                    return BadRequest(ModelState);
+                }
+
+            if(await _dbBank.GetAsync(u=>u.AccNo == createDTO.BankId) == null)
+                {
+                    ModelState.AddModelError("CustomError", "Account Number Invalid");
+                    return BadRequest(ModelState);
+                }
+
             if (createDTO == null)
             {
                 return BadRequest(createDTO);
@@ -116,7 +128,7 @@ namespace BankManagement_ManagementAPI.Controllers
             //    return StatusCode(StatusCodes.Status500InternalServerError);
             //}
 
-            Bank bank = _mapper.Map<Bank>(createDTO);
+            BankLocker bankLocker = _mapper.Map<BankLocker>(createDTO);
 
             //Bank model = new()
             //{
@@ -128,11 +140,11 @@ namespace BankManagement_ManagementAPI.Controllers
             //    Address = createDTO.Address,
             //};
 
-            await _dbBank.CreateAsync(bank);
+            await _dbBankLocker.CreateAsync(bankLocker);
 
-            _response.Result = _mapper.Map<BankDTO>(bank);
+            _response.Result = _mapper.Map<BankLockerDTO>(bankLocker);
             _response.StatusCode = HttpStatusCode.Created;
-            return CreatedAtRoute("GetBank", new { accno = bank.AccNo}, _response);
+            return CreatedAtRoute("GetBank", new { accno = bankLocker.AccountNumber}, _response);
             }
             catch (Exception ex)
             {
@@ -144,11 +156,11 @@ namespace BankManagement_ManagementAPI.Controllers
             return _response;
         }
 
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
        
-        [HttpDelete("{accno:int}", Name = "DeleteBank")]
+        [HttpDelete("{accno:int}", Name = "DeleteBankLocker")]
 
         public async Task<ActionResult<APIResponse>> DeleteBank(int accno)
         {
@@ -160,12 +172,12 @@ namespace BankManagement_ManagementAPI.Controllers
                 return BadRequest();
             }
 
-            var bank = await _dbBank.GetAsync(u => u.AccNo == accno);   
-            if(bank == null)
+            var bankLocker = await _dbBankLocker.GetAsync(u => u.AccountNumber == accno);   
+            if(bankLocker == null)
             {
                 return NotFound();
             }
-            await _dbBank.RemoveAsync(bank);
+            await _dbBankLocker.RemoveAsync(bankLocker);
             _response.StatusCode = HttpStatusCode.NoContent;
             _response.IsSuccess= true;
             return Ok(_response);
@@ -180,26 +192,31 @@ namespace BankManagement_ManagementAPI.Controllers
             return _response;
         }
 
-        [HttpPut("{accno:int}", Name = "UpdateBank")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [HttpPut("{accno:int}", Name = "UpdateBankLocker")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<APIResponse>> UpdateBank(int accno, [FromBody]BankUpdateDTO updateDTO)
+        public async Task<ActionResult<APIResponse>> UpdateBankLocker(int accno, [FromBody]BankLockerUpdateDTO updateDTO)
         {
             try
             {
 
             
-            if(updateDTO==null || accno !=updateDTO.AccNo)
+            if(updateDTO==null || accno !=updateDTO.AccountNumber)
             {
                 return BadRequest();
             }
+                if (await _dbBank.GetAsync(u => u.AccNo == updateDTO.BankId) == null)
+                {
+                    ModelState.AddModelError("CustomError", "Account Number Invalid");
+                    return BadRequest(ModelState);
+                }
 
-            //var bank = _db..FirstOrDefault(u => u.AccNo == accno);
-            //bank.AccName = bankDTO.AccName;
-            //bank.AadharCard = bankDTO.AadharCard;
-            //bank.PanCard= bankDTO.PanCard;
-            //bank.Address = bankDTO.Address;
-            Bank model = _mapper.Map<Bank>(updateDTO);
+                //var bank = _db..FirstOrDefault(u => u.AccNo == accno);
+                //bank.AccName = bankDTO.AccName;
+                //bank.AadharCard = bankDTO.AadharCard;
+                //bank.PanCard= bankDTO.PanCard;
+                //bank.Address = bankDTO.Address;
+                BankLocker model = _mapper.Map<BankLocker>(updateDTO);
 
             //Bank model = new()
             //{
@@ -210,7 +227,7 @@ namespace BankManagement_ManagementAPI.Controllers
             //    PanCard = updateDTO.PanCard,
             //    Address = updateDTO.Address,
             //};
-           await _dbBank.UpdateAsync(model);
+           await _dbBankLocker.UpdateAsync(model);
             _response.StatusCode = HttpStatusCode.NoContent;
             _response.IsSuccess= true;
             return Ok(_response);
@@ -224,59 +241,5 @@ namespace BankManagement_ManagementAPI.Controllers
             }
             return _response;
         }
-
-        [HttpPatch("{accno:int}", Name = "UpdatePartialBank")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
-        public async Task<IActionResult> UpdatePartialBank(int accno, JsonPatchDocument<BankUpdateDTO> patchDTO)
-        {
-            if (patchDTO == null || accno == 0)
-            {
-                return BadRequest();
-            }
-
-            var bank = await _dbBank.GetAsync(u => u.AccNo == accno, tracked:false);
-            
-       
-            BankUpdateDTO bankDTO = _mapper.Map<BankUpdateDTO>(bank);
-
-            //BankUpdateDTO bankDTO = new()
-            //{
-            //    AccNo = bank.AccNo,
-            //    AadharCard = bank.AadharCard,
-            //    AccName = bank.AccName,
-            //    AccType = bank.AccType,
-            //    PanCard = bank.PanCard,
-            //    Address = bank.Address,
-            //};
-
-            if (bank == null)
-            {
-                return BadRequest();
-            }
-
-            patchDTO.ApplyTo(bankDTO, ModelState);
-            Bank model = _mapper.Map<Bank>(bankDTO);
-            //Bank model = new()
-            //{
-            //    AccNo = bankDTO.AccNo,
-            //    AadharCard = bankDTO.AadharCard,
-            //    AccName = bankDTO.AccName,
-            //    AccType = bankDTO.AccType,
-            //    PanCard = bankDTO.PanCard,
-            //    Address = bankDTO.Address,
-            //};
-            
-            await _dbBank.UpdateAsync(model);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            return NoContent();
-        }
-
     }     
 }

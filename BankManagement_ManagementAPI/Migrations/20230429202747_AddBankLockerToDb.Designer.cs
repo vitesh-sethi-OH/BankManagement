@@ -4,6 +4,7 @@ using BankManagement_ManagementAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankManagement_ManagementAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230429202747_AddBankLockerToDb")]
+    partial class AddBankLockerToDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,7 +67,7 @@ namespace BankManagement_ManagementAPI.Migrations
                             AccName = "vitesh",
                             AccType = "savings",
                             Address = "reikhjtgoiew",
-                            CreatedDate = new DateTime(2023, 4, 30, 2, 43, 10, 166, DateTimeKind.Local).AddTicks(2089),
+                            CreatedDate = new DateTime(2023, 4, 30, 1, 57, 47, 48, DateTimeKind.Local).AddTicks(8293),
                             PanCard = "wert326y8"
                         });
                 });
@@ -72,9 +75,6 @@ namespace BankManagement_ManagementAPI.Migrations
             modelBuilder.Entity("BankManagement_ManagementAPI.Models.BankLocker", b =>
                 {
                     b.Property<int>("AccountNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BankId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedDate")
@@ -89,20 +89,7 @@ namespace BankManagement_ManagementAPI.Migrations
 
                     b.HasKey("AccountNumber");
 
-                    b.HasIndex("BankId");
-
                     b.ToTable("AccountNumber");
-                });
-
-            modelBuilder.Entity("BankManagement_ManagementAPI.Models.BankLocker", b =>
-                {
-                    b.HasOne("BankManagement_ManagementAPI.Models.Bank", "Bank")
-                        .WithMany()
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Bank");
                 });
 #pragma warning restore 612, 618
         }
