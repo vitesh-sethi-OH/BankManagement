@@ -56,7 +56,7 @@ namespace BankManagement_ManagementAPI.Controllers
             }
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            return Ok(_response) ;
+            return Ok(_response);
         }
 
     }

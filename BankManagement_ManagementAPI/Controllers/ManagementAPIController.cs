@@ -58,7 +58,6 @@ namespace BankManagement_ManagementAPI.Controllers
             }
             return _response;
         }
-        [HttpPost]
         [Authorize(Roles = "admin")]
         [HttpGet("accno", Name = "GetBank")]
         //[ProducesResponseType(200)]
@@ -153,7 +152,6 @@ namespace BankManagement_ManagementAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
        
         [HttpDelete("{accno:int}", Name = "DeleteBank")]
-        [HttpPost]
         [Authorize(Roles = "CUSTOM")]
         public async Task<ActionResult<APIResponse>> DeleteBank(int accno)
         {
