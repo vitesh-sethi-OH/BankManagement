@@ -3,8 +3,11 @@ using BankManagement_ManagementAPI.Data;
 using BankManagement_ManagementAPI.Logging;
 using BankManagement_ManagementAPI.Repository;
 using BankManagement_ManagementAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +22,33 @@ builder.Services.AddDbContext<ApplicationDbContext>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
 });
 builder.Services.AddScoped<IBankRepository, BankRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBankLockerRepository, BankLockerRepository>();
 builder.Services.AddAutoMapper(typeof(MappingConfig));
+
+var key = builder.Configuration.GetValue<string>("ApiSettings:Secret");
+
+builder.Services.AddAuthentication(x =>
+{
+    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+})
+
+    .AddJwtBearer(x =>
+     {
+         x.RequireHttpsMetadata = false;
+         x.SaveToken = true;
+         x.TokenValidationParameters = new TokenValidationParameters
+         {
+             ValidateIssuerSigningKey = true,
+             IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(key)),
+             ValidateIssuer = false,
+             ValidateAudience = false
+         };
+     
+}); ;
+
 builder.Services.AddControllers(option =>
 {
     //option.ReturnHttpNotAcceptable=true;
@@ -39,7 +67,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

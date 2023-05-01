@@ -13,6 +13,7 @@ namespace BankManagement_ManagementAPI.Data
 
         public DbSet<Bank> Banks { get; set; }
         public DbSet<BankLocker> AccountNumber { get; set; }
+        public DbSet<LocalUser> LocalUsers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Bank>().HasData(

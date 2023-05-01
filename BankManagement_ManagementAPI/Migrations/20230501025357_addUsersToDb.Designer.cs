@@ -4,6 +4,7 @@ using BankManagement_ManagementAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankManagement_ManagementAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230501025357_addUsersToDb")]
+    partial class addUsersToDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,7 +67,7 @@ namespace BankManagement_ManagementAPI.Migrations
                             AccName = "vitesh",
                             AccType = "savings",
                             Address = "reikhjtgoiew",
-                            CreatedDate = new DateTime(2023, 5, 1, 9, 41, 54, 20, DateTimeKind.Local).AddTicks(7032),
+                            CreatedDate = new DateTime(2023, 5, 1, 8, 23, 57, 115, DateTimeKind.Local).AddTicks(9468),
                             PanCard = "wert326y8"
                         });
                 });

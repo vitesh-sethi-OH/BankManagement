@@ -4,6 +4,7 @@ using BankManagement_ManagementAPI.Logging;
 using BankManagement_ManagementAPI.Models;
 using BankManagement_ManagementAPI.Models.DTO;
 using BankManagement_ManagementAPI.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,7 @@ namespace BankManagement_ManagementAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetBank()
         {
@@ -56,7 +58,8 @@ namespace BankManagement_ManagementAPI.Controllers
             }
             return _response;
         }
-
+        [HttpPost]
+        [Authorize(Roles = "admin")]
         [HttpGet("accno", Name = "GetBank")]
         //[ProducesResponseType(200)]
         //[ProducesResponseType(404)]
@@ -98,6 +101,7 @@ namespace BankManagement_ManagementAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles ="admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -149,7 +153,8 @@ namespace BankManagement_ManagementAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
        
         [HttpDelete("{accno:int}", Name = "DeleteBank")]
-
+        [HttpPost]
+        [Authorize(Roles = "CUSTOM")]
         public async Task<ActionResult<APIResponse>> DeleteBank(int accno)
         {
             try
